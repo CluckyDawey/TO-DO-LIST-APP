@@ -38,11 +38,37 @@ const sidebar = document.createElement('div');
 sidebar.classList.add('sidebar');
 
 const sidebarUser = document.createElement('h2');
+sidebarUser.classList.add('sidebar-user');
 sidebarUser.textContent = "USERNAME";
+
+// Add Task button
 const sidebarAddTask = document.createElement('button');
-sidebarAddTask.textContent = "Add Task";
+sidebarAddTask.classList.add('sidebar-add-task');
+sidebarAddTask.textContent = "+ Add Task";
+
+// Search functionality
+const sidebarSearch = document.createElement('div');
+sidebarSearch.classList.add('sidebar-search');
+const searchDisplay = document.createElement('p');
+searchDisplay.textContent = "Search";
+searchDisplay.style.cursor = 'pointer';
+sidebarSearch.appendChild(searchDisplay);
+const searchInput = document.createElement('input');
+searchInput.type = 'text';
+searchInput.placeholder = 'Search tasks...';
+searchInput.style.display = 'none';
+sidebarSearch.appendChild(searchInput);
+searchDisplay.addEventListener('click', () => {
+    if (searchInput.style.display === 'none') {
+        searchInput.style.display = 'block';
+    } else {
+        searchInput.style.display = 'none';
+    }
+});
+
 sidebar.appendChild(sidebarUser);
 sidebar.appendChild(sidebarAddTask);
+sidebar.appendChild(sidebarSearch);
 
 body.appendChild(sidebar);
 
