@@ -61,6 +61,7 @@ function displayTask(task) {
 //form for adding new tasks
 const form = document.createElement('form');
 form.classList.add('task-form');
+form.style.width = '30vw';
 form.hidden = true; // Initially hidden
 
 const formHeader = document.createElement('div');
@@ -87,23 +88,51 @@ closeButton.addEventListener('click', () => {
 const line = document.createElement('br');
 const titleLabel = document.createElement('label');
 titleLabel.textContent = "Title:";
+titleLabel.style.display = 'block';
+titleLabel.style.marginBottom = '1%';
 form.appendChild(titleLabel);
-form.appendChild(line.cloneNode());
 const titleInput = document.createElement('input');
 titleInput.type = 'text';
-titleInput.width = '100%';
+titleInput.style.height = '2rem';
+titleInput.style.width = '60%';
+titleInput.style.display = 'block';
+titleInput.required = true;
+titleInput.style.marginBottom = '0.5rem';
+titleInput.style.borderRadius = '10px';
 titleInput.placeholder = 'Task Title';
 form.appendChild(titleInput);
 form.appendChild(line.cloneNode());
 
 const descriptionInput = document.createElement('textarea');
+const descriptionLabel = document.createElement('label');
+descriptionLabel.textContent = "Description:";
+descriptionLabel.style.display = 'block';
+descriptionLabel.style.marginBottom = '1%';
+form.appendChild(descriptionLabel);
+descriptionInput.rows = 6;
+descriptionInput.style.width = '100%';
+descriptionInput.style.resize = 'none';
+descriptionInput.style.display = 'block';
+descriptionInput.style.borderRadius = '10px';
 descriptionInput.placeholder = 'Task Description';
 form.appendChild(descriptionInput);
 
+const dateContainer = document.createElement('div');
 const dueDateInput = document.createElement('input');
+const dueDateLabel = document.createElement('label');
+dueDateLabel.textContent = "Due Date:";
+dueDateInput.style.height = '2rem';
+dueDateInput.style.borderRadius = '10px';
 dueDateInput.type = 'date';
-form.appendChild(dueDateInput);
+dateContainer.appendChild(dueDateLabel);
+dateContainer.appendChild(line.cloneNode());
+dateContainer.appendChild(dueDateInput);
+dateContainer.style.display = 'inline-block';
+form.appendChild(dateContainer);
 
+const priorityContainer = document.createElement('div');
+const priorityLabel = document.createElement('label');
+priorityLabel.textContent = "Priority:";
 const prioritySelect = document.createElement('select');
 const priorities = ['Low', 'Medium', 'High'];
 priorities.forEach(priority => {
@@ -112,9 +141,18 @@ priorities.forEach(priority => {
     option.textContent = priority;
     prioritySelect.appendChild(option);
 });
-form.appendChild(prioritySelect);
+prioritySelect.style.height = '2rem';
+prioritySelect.style.borderRadius = '10px';
+priorityContainer.appendChild(priorityLabel);
+priorityContainer.appendChild(line.cloneNode());
+priorityContainer.appendChild(prioritySelect);
+priorityContainer.style.display = 'inline-block';
+priorityContainer.style.marginLeft = '1rem';
+priorityContainer.style.marginTop = '1.5rem';
+form.appendChild(priorityContainer);
 
 const submitButton = document.createElement('button');
+submitButton.classList.add('submit-button');
 submitButton.type = 'submit';
 submitButton.textContent = 'Add Task';
 form.appendChild(submitButton);

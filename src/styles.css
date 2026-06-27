@@ -50,3 +50,15 @@ body, html {
     background-color: #fff;
     min-height: 100vh;
 }
+
+.submit-button {
+    background-color: #ffb066;
+    position: fixed;
+    right: 1.5rem;
+    bottom: 2rem;
+    color: black;
+    border: none;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-radius: 4px;
+}
