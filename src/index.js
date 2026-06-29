@@ -2,11 +2,11 @@ import "./styles.css";
 import { format, formatDistance, formatRelative, subDays } from 'date-fns'
 
 class Task {
-    constructor(title, description, dueDate, priority) {
+    constructor(title, description, dueDate, time, priority) {
         this.title = title;
         this.description = description;
-        this.dueDate = dueDate;
         this.priority = priority;
+        this.dueDate = this._combineDateAndTime(dueDate, time); // Merge time into dueDate
     }
 
     get task() {
@@ -14,26 +14,53 @@ class Task {
             title: this.title,
             description: this.description,
             dueDate: this.dueDate,
-            priority: this.priority
-        }
+            priority: this.priority,
+        };
     }
 
-    formattedDueDate() {
-        return format(this.dueDate, 'MMMM d, yyyy');
+    // Parses "10:00 AM" and applies it to the date object
+    _combineDateAndTime(date, timeStr) {
+        if (!timeStr) return date;
+
+        const [time, modifier] = timeStr.split(' ');
+        let [hours, minutes] = time.split(':').map(Number);
+
+        if (modifier === 'PM' && hours !== 12) hours += 12;
+        if (modifier === 'AM' && hours === 12) hours = 0;
+
+        const combined = new Date(date);
+        combined.setHours(hours, minutes, 0, 0);
+        return combined;
+    }
+
+    // Now correctly shows the real time since it's baked into dueDate
+    formattedDueDateTime() {
+        return format(this.dueDate, 'MMMM d, yyyy h:mm a');
     }
 
     timeUntilDue() {
-    return formatDistance(this.dueDate, new Date(), { addSuffix: true }); // e.g. "in 3 days"
+        return formatDistance(this.dueDate, new Date(), { addSuffix: true });
+    }
+
+    startLiveCountdown(element, intervalMs = 1000) {
+        // Update immediately, then on every interval
+        element.textContent = `Due: ${this.formattedDueDateTime()} (${this.timeUntilDue()})`;
+        
+        const interval = setInterval(() => {
+            element.textContent = `Due: ${this.formattedDueDateTime()} (${this.timeUntilDue()})`;
+        }, intervalMs);
+
+        return interval; // Return so you can clearInterval() later
     }
 }
 
-function createTask(title, description, dueDate, priority) {
-    return new Task(title, description, dueDate, priority);
+function createTask(title, description, dueDate, time, priority) {
+    return new Task(title, description, dueDate, time, priority);
 }
 
-let task1 = createTask("Finish project", "Complete the project by the end of the week", new Date(2024, 5, 30), "High");
-let task2 = createTask("Grocery shopping", "Buy groceries for the week", new Date(2024, 5, 25), "Medium");
-let task3 = createTask("Call mom", "Check in with mom and see how she's doing", new Date(2024, 5, 28), "Low");
+let task1 = createTask("Finish project", "Complete the project by the end of the week", new Date(2024, 5, 30), "10:00 AM", "High");
+let task2 = createTask("Grocery shopping", "Buy groceries for the week", new Date(2024, 5, 25), "02:00 PM", "Medium");
+let task3 = createTask("Call mom", "Check in with mom and see how she's doing", new Date(2024, 5, 28), "06:00 PM", "Low");
 
 function displayTask(task) {
     const taskContainer = document.createElement('div');
@@ -48,7 +75,7 @@ function displayTask(task) {
     taskContainer.appendChild(descriptionElement);
 
     const dueDateElement = document.createElement('p');
-    dueDateElement.textContent = `Due: ${task.formattedDueDate()} (${task.timeUntilDue()})`;
+    task.startLiveCountdown(dueDateElement); // Starts the live update
     taskContainer.appendChild(dueDateElement);
 
     const priorityElement = document.createElement('p');
@@ -130,6 +157,27 @@ dateContainer.appendChild(dueDateInput);
 dateContainer.style.display = 'inline-block';
 form.appendChild(dateContainer);
 
+const timeContainer = document.createElement('div');
+const dueTimeInput = document.createElement('input');
+const dueTimeLabel = document.createElement('label');
+dueTimeLabel.textContent = "Due Time:";
+dueTimeInput.style.height = '2rem';
+dueTimeInput.style.borderRadius = '10px';
+dueTimeInput.type = 'time';
+//const timeOptions = ['12:00 AM', '1:00 AM', '2:00 AM', '3:00 AM', '4:00 AM', '5:00 AM', '6:00 AM', '7:00 AM', '8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM', '6:00 PM', '7:00 PM', '8:00 PM', '9:00 PM', '10:00 PM', '11:00 PM'];
+// timeOptions.forEach(time => {
+//     const option = document.createElement('option');
+//     option.value = time;
+//     option.textContent = time;
+//     dueTimeInput.appendChild(option);
+// });
+timeContainer.appendChild(dueTimeLabel);
+timeContainer.appendChild(line.cloneNode());
+timeContainer.appendChild(dueTimeInput);
+timeContainer.style.display = 'inline-block';
+timeContainer.style.marginLeft = '1rem';
+form.appendChild(timeContainer);
+
 const priorityContainer = document.createElement('div');
 const priorityLabel = document.createElement('label');
 priorityLabel.textContent = "Priority:";
@@ -164,6 +212,7 @@ form.addEventListener('submit', (e) => {
             titleInput.value,
             descriptionInput.value,
             new Date(dueDateInput.value),
+            dueTimeInput.value,
             prioritySelect.value
         );
         mainContent.appendChild(displayTask(newTask));
@@ -217,6 +266,30 @@ searchDisplay.addEventListener('click', () => {
     }
 });
 
+searchInput.addEventListener('input', () => {
+    const searchTerm = searchInput.value.toLowerCase();
+    const tasks = mainContent.querySelectorAll('.task-container');
+    tasks.forEach(task => {
+        const title = task.querySelector('h3').textContent.toLowerCase();
+        const description = task.querySelector('p').textContent.toLowerCase();
+        if (title.includes(searchTerm) || description.includes(searchTerm)) {
+            task.style.display = 'block';
+        } else {
+            task.style.display = 'none';
+        }
+    });
+});
+
+const sidebarToday = document.createElement('div');
+sidebarToday.classList.add('sidebar-today');
+const todayDisplay = document.createElement('p');
+todayDisplay.textContent = "Today";
+todayDisplay.style.cursor = 'pointer';
+sidebarToday.appendChild(todayDisplay);
+const todayTasksContainer = document.createElement('div');
+todayTasksContainer.style.display = 'none';
+sidebarToday.appendChild(todayTasksContainer);
+
 sidebar.appendChild(sidebarUser);
 sidebar.appendChild(sidebarAddTask);
 sidebar.appendChild(sidebarSearch);
@@ -233,4 +306,3 @@ mainContent.appendChild(displayTask(task3));
 body.appendChild(form);
 body.appendChild(wrapper);
 
-// const projectList = document.createElement('
