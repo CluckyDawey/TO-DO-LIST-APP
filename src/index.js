@@ -65,6 +65,7 @@ let task3 = createTask("Call mom", "Check in with mom and see how she's doing", 
 function displayTask(task) {
     const taskContainer = document.createElement('div');
     taskContainer.classList.add('task-container');
+    taskContainer.dataset.dueDate = task.dueDate.toISOString(); // store for filtering later
 
     const titleElement = document.createElement('h3');
     titleElement.textContent = task.title;
@@ -75,7 +76,7 @@ function displayTask(task) {
     taskContainer.appendChild(descriptionElement);
 
     const dueDateElement = document.createElement('p');
-    task.startLiveCountdown(dueDateElement); // Starts the live update
+    task.startLiveCountdown(dueDateElement);
     taskContainer.appendChild(dueDateElement);
 
     const priorityElement = document.createElement('p');
@@ -83,6 +84,12 @@ function displayTask(task) {
     taskContainer.appendChild(priorityElement);
 
     return taskContainer;
+}
+
+function isSameDay(date1, date2) {
+    return date1.getFullYear() === date2.getFullYear() &&
+           date1.getMonth() === date2.getMonth() &&
+           date1.getDate() === date2.getDate();
 }
 
 //form for adding new tasks
@@ -286,13 +293,30 @@ const todayDisplay = document.createElement('p');
 todayDisplay.textContent = "Today";
 todayDisplay.style.cursor = 'pointer';
 sidebarToday.appendChild(todayDisplay);
-const todayTasksContainer = document.createElement('div');
-todayTasksContainer.style.display = 'none';
-sidebarToday.appendChild(todayTasksContainer);
+
+let showingTodayOnly = false; // track toggle state
+
+todayDisplay.addEventListener('click', () => {
+    showingTodayOnly = !showingTodayOnly;
+    const now = new Date();
+    const tasks = mainContent.querySelectorAll('.task-container');
+
+    tasks.forEach(taskEl => {
+        if (!showingTodayOnly) {
+            taskEl.style.display = 'block'; // reset to show all
+            return;
+        }
+        const dueDate = new Date(taskEl.dataset.dueDate);
+        taskEl.style.display = isSameDay(dueDate, now) ? 'block' : 'none';
+    });
+
+    todayDisplay.textContent = showingTodayOnly ? "Today (showing all dates hidden)" : "Today";
+});
 
 sidebar.appendChild(sidebarUser);
 sidebar.appendChild(sidebarAddTask);
 sidebar.appendChild(sidebarSearch);
+sidebar.appendChild(sidebarToday);
 
 wrapper.appendChild(sidebar);
 
