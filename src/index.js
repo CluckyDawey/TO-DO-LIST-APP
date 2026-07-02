@@ -55,12 +55,22 @@ class Task {
 }
 
 function createTask(title, description, dueDate, time, priority) {
-    return new Task(title, description, dueDate, time, priority);
+    const task = new Task(title, description, dueDate, time, priority);
+    allTasks.push(task);
+    saveTasksToLocalStorage();
+    return task;
 }
 
-let task1 = createTask("Finish project", "Complete the project by the end of the week", new Date(2024, 5, 30), "10:00 AM", "High");
-let task2 = createTask("Grocery shopping", "Buy groceries for the week", new Date(2024, 5, 25), "02:00 PM", "Medium");
-let task3 = createTask("Call mom", "Check in with mom and see how she's doing", new Date(2024, 5, 28), "06:00 PM", "Low");
+function saveTasksToLocalStorage() {
+    localStorage.setItem('tasks', JSON.stringify(allTasks.map(task => task.task)));
+}
+
+const allTasks = [];
+
+const storedTasks = JSON.parse(localStorage.getItem('tasks')) || [];
+const tasks = storedTasks.map(taskData => new Task(taskData.title, taskData.description, new Date(taskData.dueDate), '', taskData.priority));
+
+console.log('Loaded tasks from localStorage:', tasks);
 
 function displayTask(task) {
     const taskContainer = document.createElement('div');
@@ -310,23 +320,38 @@ todayDisplay.addEventListener('click', () => {
         taskEl.style.display = isSameDay(dueDate, now) ? 'block' : 'none';
     });
 
-    todayDisplay.textContent = showingTodayOnly ? "Today (showing all dates hidden)" : "Today";
+    todayDisplay.textContent = showingTodayOnly ? "Today (showing all dates bound for today)" : "Today";
+});
+
+const sidebarAll = document.createElement('div');
+sidebarAll.classList.add('sidebar-all');
+const allDisplay = document.createElement('p');
+allDisplay.textContent = "All Tasks";
+allDisplay.style.cursor = 'pointer';
+sidebarAll.appendChild(allDisplay);
+
+allDisplay.addEventListener('click', () => {
+    const tasks = mainContent.querySelectorAll('.task-container');
+    tasks.forEach(task => {
+        task.style.display = 'block'; // Show all tasks
+    });
 });
 
 sidebar.appendChild(sidebarUser);
 sidebar.appendChild(sidebarAddTask);
 sidebar.appendChild(sidebarSearch);
 sidebar.appendChild(sidebarToday);
+sidebar.appendChild(sidebarAll);
 
 wrapper.appendChild(sidebar);
 
 const mainContent = document.createElement('div');
 mainContent.classList.add('main-content');
 wrapper.appendChild(mainContent);
-mainContent.appendChild(displayTask(task1));
-mainContent.appendChild(displayTask(task2));
-mainContent.appendChild(displayTask(task3));
+tasks.forEach(t => allTasks.push(t));
+allTasks.forEach(task => {
+    mainContent.appendChild(displayTask(task));
+});
 
 body.appendChild(form);
 body.appendChild(wrapper);
-
